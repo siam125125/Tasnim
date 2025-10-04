@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hey this is Siam</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ফন্ট হিসেবে 'Inter' ব্যবহার করা হলো */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+        /* নিশ্চিত করা হচ্ছে যে পুরো পেজটি ফুল স্ক্রিন নিচ্ছে */
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* স্ক্রলিং বন্ধ করা হলো */
+        }
+        /* কাস্টম ফ্লেক্স ক্লাসের মাধ্যমে কন্টেন্টকে কেন্দ্রে রাখা হলো */
+        #app-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* নতুন আকর্ষণীয় ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট */
+            background: linear-gradient(135deg, #e0f7fa 0%, #ffebee 100%);
+        }
+        /* কার্ডের জন্য উন্নত শ্যাডো */
+        #main-card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- মোবাইল ফ্রেমের মতো দেখতে প্রধান কার্ড -->
+        <div id="main-card" class="w-full max-w-sm mx-auto p-8 bg-white rounded-3xl transition-all duration-300 transform scale-100 min-h-[450px] flex flex-col justify-between">
+            
+            <!-- কন্টেন্ট এরিয়া -->
+            <div class="space-y-6 flex-grow flex flex-col justify-center">
+                <p id="content-text" class="text-xl font-medium text-gray-800 text-center leading-relaxed">
+                    <!-- কন্টেন্ট এখানে লোড হবে -->
+                </p>
+            </div>
+
+            <!-- অপশন এরিয়া -->
+            <div id="options-container" class="mt-10 space-y-4">
+                <!-- অপশন বাটনগুলো এখানে যুক্ত হবে -->
+            </div>
+            
+            <!-- ফুটার: "ইন্টারেক্টিভ বার্তা" অংশটি সরানো হয়েছে -->
+            <div class="mt-6 text-center text-sm text-gray-500 font-medium">
+                Page <span id="page-indicator">1</span> of 10
+            </div>
+        </div>
+    </div>
+
+    <!-- পপআপ মডাল -->
+    <div id="popup-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4" onclick="hidePopup()">
+        <div class="bg-red-600 text-white p-8 rounded-xl shadow-2xl max-w-xs w-full text-center border-4 border-red-700" onclick="event.stopPropagation()">
+            <p class="text-2xl font-extrabold mb-4">ভুল অপশন!</p>
+            <p class="text-xl" id="popup-message">Yes এ ক্লিক কর 😐</p>
+            <button onclick="hidePopup()" class="mt-6 px-6 py-2 bg-white text-red-600 font-bold rounded-lg hover:bg-gray-100 transition duration-150 shadow-lg transform hover:scale-[1.05]">
+                বুঝেছি
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase initialization variables (not used for this static app, but kept as per environment requirement)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let currentPage = 1;
+
+        // সমস্ত পেজের কনটেন্ট এবং অপশন (১০০% অপরিবর্তিত)
+        const pagesData = [
+            // Page 1
+            { 
+                content: "তাসনিম! তুমি কি প্রস্তুত?", 
+                options: [
+                    { text: "Yes", next: 2 },
+                    { text: "No", action: "popup", popupText: "Yes এ ক্লিক কর 😐" }
+                ]
+            },
+            // Page 2
+            { 
+                content: "একটা গল্প বলি শুনবা?", 
+                options: [
+                    { text: "Yes", next: 3 },
+                    { text: "শুনতে না চাইলেও শোনা লাগবে", next: 3 }
+                ]
+            },
+            // Page 3
+            { 
+                content: 'এক রাজ্যে একটা একটা রাজা ছিলো নাম ছিলো "দ্বিপঞ্চাশত্তমীবর্ণসন্নিবেশপ্রবণতাভন্ডসিয়াম" তারপরের পার্ট শুনতে চাও?', 
+                options: [
+                    { text: "Yes", next: 4 },
+                    { text: "না শুনে কই যাবা?😐", next: 4 }
+                ]
+            },
+            // Page 4
+            { 
+                content: "নাম এতো বড় হলে গল্প কত বড় হবে বুজতাসো? থাক গল্প বলতে গেলে ৩ দিন লাগবে 😭, আচ্ছা যেই কথা বলতে এসেছি এইটা বলি আগে!🤷‍♂️", 
+                options: [
+                    { text: "Ok", next: 5 },
+                    { text: "একটু শোনে যাও😭", next: 5 }
+                ]
+            },
+            // Page 5
+            { 
+                content: "ভালো করে কান খুলে শুনে নাও, ok?", 
+                options: [
+                    { text: "Ok", next: 6 },
+                    { text: "Ok", next: 6 }
+                ]
+            },
+            // Page 6
+            { 
+                content: "কিরে আবার চাকু দিয়ে কান কেটে খুলে ফেলো নাই তো 😬,", 
+                options: [
+                    { text: "No", next: 7 },
+                    { text: "হুম কেটে ফেলসি এম্বুলেন্স এ কল করসি 😭", next: 7 }
+                ]
+            },
+            // Page 7
+            { 
+                content: "তাসনিম দেখো মানুষ আমাদের ব্যার্থতায় অনেক কিছু বলসে, সো এইটা খারাপ লাগা স্বাভাবিক,কিন্তু এইটার জবাব দিতে হবে না?", 
+                options: [
+                    { text: "Yes", next: 8 }
+                ]
+            },
+            // Page 8
+            { 
+                content: "তাই তুমি দেখায়ে দেও যেইটার জন্য তোমাকে কথা শোনা লাগছে, আমি জানি তুমি চেষ্টা করলেই পারবে, সব সময় দোয়া রইলো তোমার জন্য। এখন কী মন খারাপ কমসে কিছুটা?", 
+                options: [
+                    { text: "হুম কমসে", next: 9 },
+                    { text: "কিছুটা কমসে", next: 9 }
+                ]
+            },
+            // Page 9
+            { 
+                content: "তাইলে বেডি পড়তে বস তাড়াতাড়ি 😐", 
+                options: [
+                    { text: "বসতাসি এক্ষনি 🏃‍♀️🏃‍♀️", next: 10 }
+                ]
+            },
+            // Page 10 (Final Page)
+            { 
+                content: "Best of luck Bondhu 🫡🫡", 
+                options: [] // No options for the last page
+            }
+        ];
+
+        const contentText = document.getElementById('content-text');
+        const optionsContainer = document.getElementById('options-container');
+        const popupModal = document.getElementById('popup-modal');
+        const popupMessage = document.getElementById('popup-message');
+        const pageIndicator = document.getElementById('page-indicator');
+        const mainCard = document.getElementById('main-card');
+
+        /**
+         * রেন্ডার করার জন্য একটি বাটন তৈরি করে
+         * @param {string} text - বাটনের লেখা
+         * @param {function} handler - ক্লিক হ্যান্ডলার
+         * @returns {HTMLButtonElement}
+         */
+        function createButton(text, handler) {
+            const button = document.createElement('button');
+            button.textContent = text;
+            button.onclick = handler;
+            // নতুন ডিজাইন: পার্পল থিম, ডিপ শ্যাডো এবং ক্লিক করলে বাবল ইফেক্ট
+            button.className = "w-full py-3 px-4 bg-purple-600 text-white font-bold rounded-xl shadow-lg hover:bg-purple-700 transition duration-200 transform hover:scale-[1.02] active:scale-95 text-lg tracking-wide border-b-4 border-purple-800 active:border-b-0 active:translate-y-px";
+            return button;
+        }
+
+        /**
+         * নির্দিষ্ট পেজের কন্টেন্ট রেন্ডার করে
+         * @param {number} pageIndex - পেজ নম্বর (1-based)
+         */
+        function renderPage(pageIndex) {
+            // যদি পেজ শেষ হয় বা অবৈধ হয়, তাহলে থেমে যাব
+            if (pageIndex < 1 || pageIndex > pagesData.length) {
+                console.error("Invalid page index:", pageIndex);
+                return;
+            }
+
+            const pageData = pagesData[pageIndex - 1];
+            currentPage = pageIndex;
+
+            // কন্টেন্ট আপডেট
+            mainCard.classList.remove('animate-fade-in');
+            void mainCard.offsetWidth; // Force reflow to restart animation
+            mainCard.classList.add('animate-fade-in');
+            
+            contentText.textContent = pageData.content;
+            pageIndicator.textContent = currentPage;
+            optionsContainer.innerHTML = ''; // অপশনগুলো খালি করা হলো
+
+            // অপশন বাটনগুলো তৈরি করা
+            pageData.options.forEach(option => {
+                const handler = () => {
+                    if (option.action === "popup") {
+                        showPopup(option.popupText);
+                    } else if (option.next) {
+                        renderPage(option.next);
+                    }
+                };
+                const button = createButton(option.text, handler);
+                optionsContainer.appendChild(button);
+            });
+            
+            // শেষ পেজের জন্য অপশন এরিয়া হাইড করা এবং ফন্ট স্টাইল পরিবর্তন
+            if (pageData.options.length === 0) {
+                optionsContainer.classList.add('hidden');
+                contentText.classList.remove('text-xl', 'font-medium');
+                contentText.classList.add('text-3xl', 'font-extrabold', 'text-green-600', 'animate-pulse'); // শেষ পেজের জন্য বিশেষ স্টাইল
+            } else {
+                optionsContainer.classList.remove('hidden');
+                contentText.classList.add('text-xl', 'font-medium');
+                contentText.classList.remove('text-3xl', 'font-extrabold', 'text-green-600', 'animate-pulse');
+            }
+        }
+
+        /**
+         * পপআপ মডাল প্রদর্শন করে
+         * @param {string} message - পপআপের বার্তা
+         */
+        function showPopup(message) {
+            popupMessage.textContent = message;
+            popupModal.classList.remove('hidden');
+        }
+
+        /**
+         * পপআপ মডাল লুকিয়ে ফেলে
+         */
+        function hidePopup() {
+            popupModal.classList.add('hidden');
+        }
+
+        // DOM লোড হওয়ার পর অ্যাপ শুরু করা
+        window.onload = () => {
+            renderPage(1); // প্রথম পেজ দিয়ে শুরু
+        };
+
+    </script>
+    
+    <!-- কাস্টম কীফ্রেম অ্যানিমেশন -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: 0, transform: 'translateY(10px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        pulse: {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.8 },
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
